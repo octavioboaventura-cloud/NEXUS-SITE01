@@ -1,0 +1,13 @@
+NEXUS ATLAS / SYNCHROARM — alteração pontual
+
+Substitua o index.html existente e acrescente a pasta assets no mesmo diretório. Mantenha os demais arquivos do seu projeto.
+
+Para testar: abra a pasta no VS Code e use Live Server, ou execute python -m http.server 8000 e acesse http://localhost:8000. Os módulos JavaScript exigem um servidor HTTP; não use duplo clique no HTML.
+
+Vídeos originais incluídos sem recompressão: WhatsApp Video = físico; Gravando video synch = digital.
+
+Quest: silhueta amostrada da referência, relevo discreto estimado, Three.js / THREE.Points, física de mola em arrays e alternativa Canvas quando WebGL não está disponível. Não é um modelo 3D completo das partes ocultas pela fotografia.
+
+Verificado: reprodução simultânea, mudo, loop configurado, controles ocultos, contain, pausa fora da tela, interação e reconstrução na alternativa Canvas, layout 390px. O navegador de revisão não oferece WebGL; renderização GPU e meta de 60 FPS não foram aferidas.
+
+Demais seções e scripts originais preservados. Nenhuma publicação remota foi feita: não foi fornecido o repositório ou endereço editável do site.

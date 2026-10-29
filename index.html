@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS ATLAS // SynchroArm - Tecnologia, Robótica & VR</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind Custom Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        nexus: {
+                            bg: '#05070A',
+                            sec: '#080C12',
+                            card: '#0B1017',
+                            border: 'rgba(56, 189, 248, 0.12)',
+                            blue: '#008CFF',
+                            cyan: '#00E5FF',
+                            light: '#38BDF8',
+                            text: '#F5F7FA',
+                            sub: '#8D99A6',
+                            status: '#00E59B'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 3s infinite ease-in-out',
+                        'scanline': 'scanline 8s linear infinite',
+                        'float': 'float 6s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.4', filter: 'drop-shadow(0 0 15px rgba(0, 229, 255, 0.3))' },
+                            '50%': { opacity: '0.8', filter: 'drop-shadow(0 0 25px rgba(0, 229, 255, 0.6))' }
+                        },
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(1000%)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base Adjustments & Custom Styles */
+        body {
+            background-color: #05070A;
+            color: #F5F7FA;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Subtle Scanline Overlay */
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Ambient Cyber Grid Background */
+        .bg-cyber-grid {
+            background-image: 
+                linear-gradient(to right, rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Spotlight Card Interactive Effect */
+        .spotlight-card {
+            position: relative;
+            background: #0B1017;
+            border: 1px solid rgba(56, 189, 248, 0.12);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .spotlight-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 229, 255, 0.12), transparent 40%);
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .spotlight-card:hover::before {
+            opacity: 1;
+        }
+
+        .spotlight-card:hover {
+            border-color: rgba(0, 229, 255, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(0, 229, 255, 0.15);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #05070A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #0B1017;
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00E5FF;
+        }
+
+        /* Custom Hardware Tech Cursor */
+        #custom-cursor {
+            pointer-events: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            transition: transform 0.08s ease-out, opacity 0.2s ease;
+        }
+
+        /* Hide custom cursor on mobile touch */
+        @media (pointer: coarse) {
+            #custom-cursor { display: none !important; }
+            body { cursor: auto !important; }
+        }
+
+        /* Section Title Glow Text */
+        .glow-text-cyan {
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+        }
+    </style>
+<link rel="stylesheet" href="assets/refinements.css">
+</head>
+<body class="bg-nexus-bg text-nexus-text selection:bg-nexus-cyan selection:text-nexus-bg relative">
+
+    <!-- Preloader Overlay -->
+    <div id="preloader" class="fixed inset-0 z-[10000] bg-nexus-bg flex flex-col items-center justify-center transition-opacity duration-700">
+        <div class="flex flex-col items-center space-y-4">
+            <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 bg-nexus-cyan rounded-full animate-ping"></span>
+                <span class="font-heading text-xl font-bold tracking-widest text-nexus-text">NEXUS ATLAS</span>
+            </div>
+            <div class="w-48 h-1 bg-nexus-sec rounded-full overflow-hidden border border-nexus-border">
+                <div id="loader-bar" class="h-full bg-gradient-to-r from-nexus-blue to-nexus-cyan w-0 transition-all duration-300"></div>
+            </div>
+            <div class="font-mono text-xs text-nexus-sub tracking-wider flex items-center space-x-2">
+                <span>INITIALIZING SYSTEM</span>
+                <span id="loader-percent">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanline Subtle Layer -->
+    <div class="scanlines fixed inset-0 z-50 opacity-30"></div>
+
+    <!-- Custom Tech Cursor -->
+    <div id="custom-cursor" class="hidden md:block">
+        <div id="cursor-dot" class="w-2 h-2 bg-nexus-cyan rounded-full -translate-x-1/2 -translate-y-1/2 shadow-[0_0_10px_#00E5FF]"></div>
+        <div id="cursor-ring" class="w-8 h-8 border border-nexus-cyan/40 rounded-full -translate-x-1/2 -translate-y-1/2 -mt-1 -ml-1 transition-all duration-150 ease-out"></div>
+    </div>
+
+    <!-- HEADER / NAVIGATION -->
+    <header id="navbar" class="fixed top-0 left-0 right-0 z-40 transition-all duration-300 py-5 px-6 lg:px-12 backdrop-blur-md bg-nexus-bg/60 border-b border-transparent">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#" class="flex items-center space-x-3 group">
+                <div class="w-9 h-9 rounded-lg bg-nexus-sec border border-nexus-cyan/30 flex items-center justify-center group-hover:border-nexus-cyan transition-colors shadow-[0_0_15px_rgba(0,229,255,0.1)]">
+                    <i data-lucide="cpu" class="w-5 h-5 text-nexus-cyan"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-heading font-bold text-lg tracking-wider text-nexus-text group-hover:text-nexus-cyan transition-colors">NEXUS ATLAS</span>
+                    <span class="font-mono text-[9px] text-nexus-sub tracking-widest -mt-1">INDUSTRIAL TECH</span>
+                </div>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center space-x-8 font-mono text-xs text-nexus-sub">
+                <a href="#projeto" class="hover:text-nexus-cyan transition-colors uppercase tracking-wider hover:glow-text">PROJETO</a>
+                <a href="#tecnologia" class="hover:text-nexus-cyan transition-colors uppercase tracking-wider hover:glow-text">TECNOLOGIA</a>
+                <a href="#desenvolvimento" class="hover:text-nexus-cyan transition-colors uppercase tracking-wider hover:glow-text">DESENVOLVIMENTO</a>
+                <a href="#sobre" class="hover:text-nexus-cyan transition-colors uppercase tracking-wider hover:glow-text">SOBRE</a>
+                <a href="#contato" class="hover:text-nexus-cyan transition-colors uppercase tracking-wider hover:glow-text">CONTATO</a>
+            </nav>
+
+            <!-- CTA Button -->
+            <a href="#projeto" class="hidden sm:flex items-center space-x-2 px-5 py-2.5 rounded-lg bg-nexus-blue/10 border border-nexus-blue/40 hover:border-nexus-cyan hover:bg-nexus-cyan/10 text-nexus-cyan font-mono text-xs font-medium tracking-wider transition-all duration-300 shadow-[0_0_15px_rgba(0,140,255,0.15)] hover:shadow-[0_0_20px_rgba(0,229,255,0.3)]">
+                <span>EXPLORAR SYNCHROARM</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+
+            <!-- Mobile Menu Toggle -->
+            <button id="menu-toggle" class="md:hidden text-nexus-text hover:text-nexus-cyan">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Drawer Menu -->
+        <div id="mobile-menu" class="hidden md:hidden absolute top-full left-0 right-0 bg-nexus-sec border-b border-nexus-border p-6 space-y-4 font-mono text-sm">
+            <a href="#projeto" class="block text-nexus-sub hover:text-nexus-cyan">PROJETO</a>
+            <a href="#tecnologia" class="block text-nexus-sub hover:text-nexus-cyan">TECNOLOGIA</a>
+            <a href="#desenvolvimento" class="block text-nexus-sub hover:text-nexus-cyan">DESENVOLVIMENTO</a>
+            <a href="#sobre" class="block text-nexus-sub hover:text-nexus-cyan">SOBRE</a>
+            <a href="#contato" class="block text-nexus-sub hover:text-nexus-cyan">CONTATO</a>
+        </div>
+    </header>
+
+    <main class="relative bg-cyber-grid">
+
+        <!-- HERO SECTION -->
+        <section class="min-h-screen pt-32 pb-20 px-6 lg:px-12 flex flex-col justify-center relative overflow-hidden">
+            <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Left Hero Content -->
+                <div class="lg:col-span-6 space-y-8 z-10">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-nexus-card border border-nexus-cyan/20 font-mono text-xs text-nexus-cyan">
+                        <span class="w-2 h-2 rounded-full bg-nexus-cyan animate-pulse"></span>
+                        <span>NEXUS ATLAS // INDUSTRIAL TECHNOLOGY</span>
+                    </div>
+
+                    <h1 class="font-heading font-extrabold text-4xl sm:text-6xl lg:text-7xl leading-none text-nexus-text tracking-tight">
+                        CONECTANDO <br>
+                        O FÍSICO AO <br>
+                        <span class="text-nexus-cyan glow-text-cyan italic">DIGITAL.</span>
+                    </h1>
+
+                    <p class="text-nexus-sub text-base sm:text-lg max-w-xl leading-relaxed font-normal">
+                        O <strong class="text-nexus-text">SynchroArm</strong> conecta robótica, automação e realidade virtual para transformar a forma como novos profissionais aprendem.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
+                        <a href="#projeto" class="px-8 py-4 rounded-xl bg-gradient-to-r from-nexus-blue to-nexus-cyan text-nexus-bg font-heading font-bold text-sm tracking-wider flex items-center justify-center space-x-3 hover:opacity-95 transition-all shadow-[0_0_25px_rgba(0,229,255,0.3)]">
+                            <span>CONHECER O SYNCHROARM</span>
+                            <i data-lucide="arrow-down-right" class="w-5 h-5"></i>
+                        </a>
+                        <a href="#desenvolvimento" class="px-8 py-4 rounded-xl bg-nexus-card border border-nexus-border hover:border-nexus-cyan text-nexus-text font-heading font-semibold text-sm tracking-wider flex items-center justify-center space-x-2 transition-all">
+                            <span>EXPLORAR O PROJETO</span>
+                        </a>
+                    </div>
+
+                    <!-- Metrics / Quick Specs -->
+                    <div class="grid grid-cols-3 gap-4 pt-8 border-t border-nexus-border/60 font-mono">
+                        <div>
+                            <span class="block text-2xl font-bold text-nexus-cyan">05 EIXOS</span>
+                            <span class="text-xs text-nexus-sub">Cinco articulações</span>
+                        </div>
+                        <div>
+                            <span class="block text-2xl font-bold text-nexus-text">ESP32</span>
+                            <span class="text-xs text-nexus-sub">Controle embarcado</span>
+                        </div>
+                        <div>
+                            <span class="block text-2xl font-bold text-nexus-light">VR + TWIN</span>
+                            <span class="text-xs text-nexus-sub">Realidade Imersiva</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Interactive VR Headset Canvas (Point Cloud Physics Engine) -->
+                <div class="lg:col-span-6 relative h-[420px] sm:h-[500px] w-full flex items-center justify-center">
+                    <!-- Point Cloud Canvas -->
+                    <canvas id="quest-canvas" class="w-full h-full cursor-crosshair z-10"></canvas>
+                    
+                    <!-- HUD Interactive Overlay Helper -->
+                    <div class="absolute bottom-2 right-2 bg-nexus-sec/80 backdrop-blur-md px-3 py-1.5 rounded border border-nexus-cyan/30 text-[10px] font-mono text-nexus-cyan flex items-center space-x-2 z-20 pointer-events-none">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5 animate-spin"></i>
+                        <span>META QUEST 2 // TOQUE OU PASSE O MOUSE</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 01: O PROJETO SYNCHROARM -->
+        <section id="projeto" class="py-24 px-6 lg:px-12 border-t border-nexus-border/40 relative">
+            <div class="max-w-7xl mx-auto space-y-16">
+                
+                <!-- Section Header -->
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                        <div class="font-mono text-xs text-nexus-cyan tracking-widest uppercase mb-2">[ 01 ] PROJETO</div>
+                        <h2 class="font-heading font-bold text-3xl sm:text-5xl text-nexus-text">
+                            CONHEÇA O <span class="text-nexus-cyan">SYNCHROARM.</span>
+                        </h2>
+                    </div>
+                    <p class="text-nexus-sub max-w-md text-sm leading-relaxed">
+                        Integração entre o mundo físico e o digital. Plataforma educacional voltada ao aprendizado de robótica, automação industrial e Indústria 4.0.
+                    </p>
+                </div>
+
+                <!-- Interactive Dual Inspector: Physical Arm ↔ Digital Twin -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-nexus-sec rounded-2xl p-6 lg:p-10 border border-nexus-border relative overflow-hidden">
+                    
+                    <!-- Physical Arm Visual -->
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="flex items-center justify-between font-mono text-xs text-nexus-sub pb-2 border-b border-nexus-border">
+                            <span>PROTÓTIPO FÍSICO</span>
+                            <span class="text-nexus-status flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-nexus-status"></span> PROTÓTIPO FUNCIONAL</span>
+                        </div>
+                        <div class="demo-frame relative rounded-xl overflow-hidden border border-nexus-border bg-nexus-card group">
+                            <!-- Real arm preview image with SVG fallback grid -->
+                            <video class="synchro-video" autoplay muted loop playsinline preload="metadata" aria-label="Demonstração real do protótipo físico SynchroArm"><source src="assets/WhatsApp Video 2026-10-29 at 10.08.14.mp4" type="video/mp4"></video>
+                            <div class="demo-caption bg-nexus-bg/90 backdrop-blur px-3 py-1 rounded text-[11px] font-mono text-nexus-cyan border border-nexus-cyan/30">
+                                IMPRESSÃO 3D + SERVOS
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sync Status Indicator Core -->
+                    <div class="sync-core lg:col-span-2 font-mono text-center">
+                      <span class="sync-end">MUNDO FÍSICO</span>
+                      <div class="sync-track"><span></span><b>⇄ SYNC</b></div>
+                      <span class="sync-end">MUNDO DIGITAL</span>
+                      <p>INTEGRAÇÃO EM DESENVOLVIMENTO</p>
+                      <small>EM DESENVOLVIMENTO //<br>SINCRONIZAÇÃO PREVISTA</small>
+                    </div>
+                    <!-- Digital Twin Inspector Visual -->
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="flex items-center justify-between font-mono text-xs text-nexus-sub pb-2 border-b border-nexus-border">
+                            <span>GÊMEO DIGITAL (VR)</span>
+                            <span class="text-nexus-cyan flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-nexus-cyan animate-pulse"></span> WEBXR / THREE.JS</span>
+                        </div>
+                        <div class="demo-frame relative rounded-xl overflow-hidden border border-nexus-border bg-nexus-card group">
+                            <video class="synchro-video" autoplay muted loop playsinline preload="metadata" aria-label="Demonstração real do gêmeo digital SynchroArm"><source src="assets/Gravando video synch .mp4" type="video/mp4"></video>
+                            <div class="demo-caption bg-nexus-bg/90 backdrop-blur px-3 py-1 rounded text-[11px] font-mono text-nexus-light border border-nexus-light/30">
+                                5 ARTICULAÇÕES MAPEADAS
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Badges Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div class="spotlight-card rounded-xl p-4 text-center">
+                        <span class="block font-heading font-bold text-nexus-cyan text-lg">05 EIXOS</span>
+                        <span class="font-mono text-xs text-nexus-sub">Cinco Graus de Liberdade</span>
+                    </div>
+                    <div class="spotlight-card rounded-xl p-4 text-center">
+                        <span class="block font-heading font-bold text-nexus-text text-lg">ESP32</span>
+                        <span class="font-mono text-xs text-nexus-sub">Microcontrolador Wi-Fi</span>
+                    </div>
+                    <div class="spotlight-card rounded-xl p-4 text-center">
+                        <span class="block font-heading font-bold text-nexus-light text-lg">REALIDADE VIRTUAL</span>
+                        <span class="font-mono text-xs text-nexus-sub">Meta Quest Compatible</span>
+                    </div>
+                    <div class="spotlight-card rounded-xl p-4 text-center">
+                        <span class="block font-heading font-bold text-nexus-text text-lg">IMPRESSÃO 3D</span>
+                        <span class="font-mono text-xs text-nexus-sub">Estrutura Aditiva</span>
+                    </div>
+                    <div class="spotlight-card rounded-xl p-4 text-center">
+                        <span class="block font-heading font-bold text-nexus-cyan text-lg">GÊMEO DIGITAL</span>
+                        <span class="font-mono text-xs text-nexus-sub">Simulação em Tempo Real</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 02: O PROBLEMA & O GAP EDUCACIONAL -->
+        <section class="py-24 px-6 lg:px-12 bg-nexus-sec border-t border-nexus-border/40 relative">
+            <div class="max-w-7xl mx-auto space-y-16">
+                
+                <div class="text-center space-y-4 max-w-3xl mx-auto">
+                    <div class="font-mono text-xs text-nexus-cyan tracking-widest uppercase">[ DEMANDA INDUSTRIAL ]</div>
+                    <h2 class="font-heading font-extrabold text-3xl sm:text-5xl text-nexus-text">
+                        A AUTOMAÇÃO EVOLUI. <br>
+                        <span class="text-nexus-cyan italic">A FORMAÇÃO PRECISA ACOMPANHAR.</span>
+                    </h2>
+                    <p class="text-nexus-sub text-sm sm:text-base leading-relaxed">
+                        Demanda proposta pela <strong class="text-nexus-text">Atlas Tech Ambiental Indústria e Comércio Ltda.</strong> para acelerar a capacitação técnica em sistemas automatizados.
+                    </p>
+                </div>
+
+                <!-- The Visual GAP Connector Component -->
+                <div class="bg-nexus-card border border-nexus-border rounded-2xl p-8 lg:p-12 relative overflow-hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-11 gap-6 items-center">
+                        
+                        <!-- Theory Side -->
+                        <div class="lg:col-span-3 bg-nexus-bg p-6 rounded-xl border border-nexus-border text-center space-y-2">
+                            <i data-lucide="book-open" class="w-8 h-8 text-nexus-sub mx-auto"></i>
+                            <h3 class="font-heading font-bold text-lg text-nexus-text">TEORIA</h3>
+                            <p class="text-xs text-nexus-sub">Ensino tradicional, conceitos abstratos e pouca vivência prática inicial.</p>
+                        </div>
+
+                        <!-- GAP Bridge Connector -->
+                        <div class="lg:col-span-5 flex flex-col items-center justify-center space-y-4 py-6">
+                            <div class="w-full flex items-center justify-between text-xs font-mono text-nexus-cyan px-2">
+                                <span>DISTÂNCIA PRÁTICA</span>
+                                <span>GAP DE ENSINO</span>
+                            </div>
+                            <div class="w-full relative h-12 bg-nexus-bg rounded-lg border border-nexus-cyan/30 flex items-center justify-center overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-r from-nexus-blue/20 via-nexus-cyan/40 to-nexus-blue/20 animate-pulse"></div>
+                                <span class="relative z-10 font-heading font-bold text-sm tracking-widest text-nexus-cyan">
+                                    SYNCHROARM BRIDGE
+                                </span>
+                            </div>
+                            <p class="text-[11px] font-mono text-nexus-sub text-center">Conectando simulação imersiva e prototipagem física real</p>
+                        </div>
+
+                        <!-- Practice Side -->
+                        <div class="lg:col-span-3 bg-nexus-bg p-6 rounded-xl border border-nexus-border text-center space-y-2">
+                            <i data-lucide="factory" class="w-8 h-8 text-nexus-cyan mx-auto"></i>
+                            <h3 class="font-heading font-bold text-lg text-nexus-text">PRÁTICA</h3>
+                            <p class="text-xs text-nexus-sub">Sistemas industriais complexos, braços robóticos e Indústria 4.0.</p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Key Pain Points Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="spotlight-card rounded-xl p-6 space-y-3">
+                        <i data-lucide="alert-circle" class="w-6 h-6 text-nexus-cyan"></i>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">Acesso Limitado</h4>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Alto custo de equipamentos industriais restringe o contato direto de alunos com robôs reais.</p>
+                    </div>
+                    <div class="spotlight-card rounded-xl p-6 space-y-3">
+                        <i data-lucide="trending-up" class="w-6 h-6 text-nexus-cyan"></i>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">Curva Elevada</h4>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Dificuldade de visualizar kinematics e trajetória de eixos apenas por manuais técnicos.</p>
+                    </div>
+                    <div class="spotlight-card rounded-xl p-6 space-y-3">
+                        <i data-lucide="shield-alert" class="w-6 h-6 text-nexus-cyan"></i>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">Segurança na Aprendizagem</h4>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Necessidade de um ambiente de testes sem riscos de colisão ou danos a equipamentos caros.</p>
+                    </div>
+                    <div class="spotlight-card rounded-xl p-6 space-y-3">
+                        <i data-lucide="cpu" class="w-6 h-6 text-nexus-cyan"></i>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">Integração Tecnológica</h4>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Falta de ferramentas que unifiquem hardware barato com plataformas de Realidade Virtual modernas.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 03: COMO FUNCIONA (Horizontal Interactive Data Flow) -->
+        <section id="tecnologia" class="py-24 px-6 lg:px-12 border-t border-nexus-border/40 relative">
+            <div class="max-w-7xl mx-auto space-y-16">
+                
+                <div>
+                    <div class="font-mono text-xs text-nexus-cyan tracking-widest uppercase mb-2">[ 02 ] COMO FUNCIONA</div>
+                    <h2 class="font-heading font-bold text-3xl sm:text-5xl text-nexus-text">
+                        DO MOVIMENTO VIRTUAL <span class="text-nexus-cyan">AO FÍSICO.</span>
+                    </h2>
+                    <p class="text-nexus-sub text-sm mt-2 font-mono">ARQUITETURA PREVISTA // INTEGRAÇÃO EM FASE DE DESENVOLVIMENTO</p>
+                </div>
+
+                <!-- Interactive Timeline Step Flow -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative">
+                    
+                    <div class="spotlight-card rounded-xl p-6 space-y-3 relative group">
+                        <div class="font-mono text-xs text-nexus-cyan">01 // ENTRADA</div>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">USUÁRIO</h3>
+                        <p class="text-xs text-nexus-sub">Interage no espaço imersivo através de gestos ou controles.</p>
+                        <i data-lucide="user" class="w-5 h-5 text-nexus-sub group-hover:text-nexus-cyan transition-colors"></i>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-6 space-y-3 relative group">
+                        <div class="font-mono text-xs text-nexus-cyan">02 // VR HEADSET</div>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">META QUEST</h3>
+                        <p class="text-xs text-nexus-sub">Rastreia o posicionamento espacial e os comandos dos eixos.</p>
+                        <i data-lucide="glasses" class="w-5 h-5 text-nexus-sub group-hover:text-nexus-cyan transition-colors"></i>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-6 space-y-3 relative group">
+                        <div class="font-mono text-xs text-nexus-cyan">03 // SIMULAÇÃO</div>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">GÊMEO DIGITAL</h3>
+                        <p class="text-xs text-nexus-sub">Modelo 3D virtual atualiza a cinemática das articulações simultaneamente.</p>
+                        <i data-lucide="box" class="w-5 h-5 text-nexus-sub group-hover:text-nexus-cyan transition-colors"></i>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-6 space-y-3 relative group">
+                        <div class="font-mono text-xs text-nexus-cyan">04 // PROCESSAMENTO</div>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">ESP32 & ELECTRONICS</h3>
+                        <p class="text-xs text-nexus-sub">Placa embarcada interpreta ângulos e envia pulsos PWM aos motores.</p>
+                        <i data-lucide="microchip" class="w-5 h-5 text-nexus-sub group-hover:text-nexus-cyan transition-colors"></i>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 04: TECNOLOGIAS UTILIZADAS -->
+        <section class="py-24 px-6 lg:px-12 bg-nexus-sec border-t border-nexus-border/40 relative">
+            <div class="max-w-7xl mx-auto space-y-16">
+                
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                        <div class="font-mono text-xs text-nexus-cyan tracking-widest uppercase mb-2">[ 03 ] TECNOLOGIA</div>
+                        <h2 class="font-heading font-bold text-3xl sm:text-5xl text-nexus-text">
+                            STACK & <span class="text-nexus-cyan">FERRAMENTAS.</span>
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Technologies Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    
+                    <div class="spotlight-card rounded-xl p-5 space-y-2">
+                        <div class="font-mono text-[10px] text-nexus-cyan">HARDWARE</div>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">ESP32</h4>
+                        <p class="text-[11px] text-nexus-sub">Controle eletrônico principal e conectividade Wi-Fi/Bluetooth.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-5 space-y-2">
+                        <div class="font-mono text-[10px] text-nexus-cyan">ATUADORES</div>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">Servomotores</h4>
+                        <p class="text-[11px] text-nexus-sub">Atuação precisa em cada uma das 5 articulações do braço.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-5 space-y-2">
+                        <div class="font-mono text-[10px] text-nexus-cyan">MANUFATURA</div>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">Impressão 3D</h4>
+                        <p class="text-[11px] text-nexus-sub">Peças e componentes estruturais impressos em polímero rígido.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-5 space-y-2">
+                        <div class="font-mono text-[10px] text-nexus-cyan">VR HEADSET</div>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">Meta Quest</h4>
+                        <p class="text-[11px] text-nexus-sub">Dispositivo imersivo para visualização e interação do usuário.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-5 space-y-2">
+                        <div class="font-mono text-[10px] text-nexus-cyan">SIMULAÇÃO</div>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">WebXR / Three.js</h4>
+                        <p class="text-[11px] text-nexus-sub">Renderização 3D e simulação imersiva direto no navegador.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-5 space-y-2">
+                        <div class="font-mono text-[10px] text-nexus-cyan">CIRCUITOS</div>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">EasyEDA</h4>
+                        <p class="text-[11px] text-nexus-sub">Desenvolvimento de placa de circuito impresso própria (PCB).</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-5 space-y-2">
+                        <div class="font-mono text-[10px] text-nexus-cyan">CAD 3D</div>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">Autodesk Inventor</h4>
+                        <p class="text-[11px] text-nexus-sub">Modelagem mecânica detalhada das engrenagens e suportes.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-5 space-y-2">
+                        <div class="font-mono text-[10px] text-nexus-cyan">VERSIONAMENTO</div>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">GitHub</h4>
+                        <p class="text-[11px] text-nexus-sub">Repositório de código centralizado e histórico de versões.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-5 space-y-2">
+                        <div class="font-mono text-[10px] text-nexus-cyan">IDE</div>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">VS Code</h4>
+                        <p class="text-[11px] text-nexus-sub">Ambiente de desenvolvimento para firmware e aplicação Web.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-5 space-y-2">
+                        <div class="font-mono text-[10px] text-nexus-cyan">CONCEITO</div>
+                        <h4 class="font-heading font-bold text-nexus-text text-base">Digital Twin</h4>
+                        <p class="text-[11px] text-nexus-sub">Espelhamento virtual de parâmetros do braço robótico.</p>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 05: MVP & REALIZAÇÕES -->
+        <section id="desenvolvimento" class="py-24 px-6 lg:px-12 border-t border-nexus-border/40 relative">
+            <div class="max-w-7xl mx-auto space-y-16">
+                
+                <div>
+                    <div class="font-mono text-xs text-nexus-cyan tracking-widest uppercase mb-2">[ 04 ] EVOLUÇÃO DO PROJETO</div>
+                    <h2 class="font-heading font-bold text-3xl sm:text-5xl text-nexus-text">
+                        DA IDEIA AO <span class="text-nexus-cyan">PROTÓTIPO.</span>
+                    </h2>
+                </div>
+
+                <!-- MVP Stage Roadmap Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <div class="spotlight-card rounded-xl p-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-xs text-nexus-sub">ETAPA 01</span>
+                            <span class="px-2.5 py-1 rounded bg-nexus-status/10 text-nexus-status font-mono text-[10px] font-bold">CONCLUÍDO</span>
+                        </div>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">Modelagem 3D & Mecânica</h3>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Desenvolvimento completo das estruturas, articulações e engrenagens no Autodesk Inventor.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-xs text-nexus-sub">ETAPA 02</span>
+                            <span class="px-2.5 py-1 rounded bg-nexus-status/10 text-nexus-status font-mono text-[10px] font-bold">CONCLUÍDO</span>
+                        </div>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">Impressão 3D & Montagem</h3>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Fabricação das peças estruturais e acoplamento dos servomotores nos eixos de rotação.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-xs text-nexus-sub">ETAPA 03</span>
+                            <span class="px-2.5 py-1 rounded bg-nexus-cyan/10 text-nexus-cyan font-mono text-[10px] font-bold">EM DESENVOLVIMENTO</span>
+                        </div>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">Eletrônica & PCB Propriética</h3>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Design da placa de controle no EasyEDA, montagem e soldagem dos componentes do ESP32.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-xs text-nexus-sub">ETAPA 04</span>
+                            <span class="px-2.5 py-1 rounded bg-nexus-status/10 text-nexus-status font-mono text-[10px] font-bold">CONCLUÍDO</span>
+                        </div>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">Ambiente VR & Gêmeo Digital</h3>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Criação da cena imersiva, interface de comando dos 5 eixos e modelo virtual tridimensional.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-xs text-nexus-sub">ETAPA 05</span>
+                            <span class="px-2.5 py-1 rounded bg-nexus-cyan/10 text-nexus-cyan font-mono text-[10px] font-bold">EM DESENVOLVIMENTO</span>
+                        </div>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">Sincronização Físico-Digital</h3>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Testes de comunicação via socket entre o ambiente WebXR e o microcontrolador ESP32.</p>
+                    </div>
+
+                    <div class="spotlight-card rounded-xl p-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-xs text-nexus-sub">ETAPA 06</span>
+                            <span class="px-2.5 py-1 rounded bg-nexus-sub/20 text-nexus-sub font-mono text-[10px] font-bold">PRÓXIMA ETAPA</span>
+                        </div>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">Validação Educacional</h3>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Aplicação prática em ambiente de laboratório do SENAI São Carlos para testes com estudantes.</p>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 06: PARA QUEM CRIAMOS & BENEFÍCIOS -->
+        <section class="py-24 px-6 lg:px-12 bg-nexus-sec border-t border-nexus-border/40 relative">
+            <div class="max-w-7xl mx-auto space-y-16">
+                
+                <!-- Target Audience Header -->
+                <div class="text-center space-y-4">
+                    <div class="font-mono text-xs text-nexus-cyan tracking-widest uppercase">[ PÚBLICO & APLICAÇÕES ]</div>
+                    <h2 class="font-heading font-bold text-3xl sm:text-5xl text-nexus-text">
+                        PARA QUEM <span class="text-nexus-cyan">CRIAMOS?</span>
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="spotlight-card rounded-xl p-6 space-y-3">
+                        <i data-lucide="graduation-cap" class="w-8 h-8 text-nexus-cyan"></i>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">Estudantes</h3>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Cursos técnicos e tecnológicos que buscam compreender kinemática e automação de forma visual.</p>
+                    </div>
+                    <div class="spotlight-card rounded-xl p-6 space-y-3">
+                        <i data-lucide="briefcase" class="w-8 h-8 text-nexus-cyan"></i>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">Novos Profissionais</h3>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Profissionais recém-chegados à indústria de automação acelerando sua curva de aprendizado.</p>
+                    </div>
+                    <div class="spotlight-card rounded-xl p-6 space-y-3">
+                        <i data-lucide="school" class="w-8 h-8 text-nexus-cyan"></i>
+                        <h3 class="font-heading font-bold text-lg text-nexus-text">Instituições de Ensino</h3>
+                        <p class="text-xs text-nexus-sub leading-relaxed">Escolas e laboratórios que desejam modernizar suas ferramentas com realidade imersiva.</p>
+                    </div>
+                </div>
+
+                <!-- Benefits Section -->
+                <div class="pt-12 border-t border-nexus-border/40">
+                    <div class="mb-8">
+                        <div class="font-mono text-xs text-nexus-cyan tracking-widest uppercase mb-2">[ DIFERENCIAIS ]</div>
+                        <h3 class="font-heading font-bold text-2xl sm:text-4xl text-nexus-text">
+                            POR QUE O <span class="text-nexus-cyan">SYNCHROARM?</span>
+                        </h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-nexus-card border border-nexus-border p-6 rounded-xl space-y-2">
+                            <h4 class="font-heading font-bold text-nexus-text">Experiência Prática</h4>
+                            <p class="text-xs text-nexus-sub">Aproxima conceitos teóricos rígidos de uma aplicação direta e manipulável.</p>
+                        </div>
+                        <div class="bg-nexus-card border border-nexus-border p-6 rounded-xl space-y-2">
+                            <h4 class="font-heading font-bold text-nexus-text">Baixo Custo Estrutural</h4>
+                            <p class="text-xs text-nexus-sub">Baseado em componentes acessíveis e fabricação aditiva por impressão 3D.</p>
+                        </div>
+                        <div class="bg-nexus-card border border-nexus-border p-6 rounded-xl space-y-2">
+                            <h4 class="font-heading font-bold text-nexus-text">Treinamento Seguro</h4>
+                            <p class="text-xs text-nexus-sub">Permite errar e aprender no ambiente virtual antes de operar equipamentos pesados.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 08: SOBRE NÓS (NEXUS ATLAS & SENAI) -->
+        <section id="sobre" class="py-24 px-6 lg:px-12 border-t border-nexus-border/40 relative">
+            <div class="max-w-7xl mx-auto space-y-16">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    
+                    <div class="lg:col-span-7 space-y-6">
+                        <div class="font-mono text-xs text-nexus-cyan tracking-widest uppercase">[ 05 ] QUEM SOMOS</div>
+                        <h2 class="font-heading font-extrabold text-3xl sm:text-5xl text-nexus-text">
+                            NEXUS <span class="text-nexus-cyan">ATLAS.</span>
+                        </h2>
+                        
+                        <p class="text-nexus-sub text-base leading-relaxed">
+                            A <strong class="text-nexus-text">Nexus Atlas</strong> é uma equipe desenvolvida no contexto do curso <strong class="text-nexus-text">Técnico em Mecatrônica do SENAI São Carlos</strong> (Escola 601 Antonio A. Lobbe), focada na criação de soluções que unem automação, robótica, software e experiências imersivas.
+                        </p>
+
+                        <div class="space-y-3 font-mono text-xs border-l-2 border-nexus-cyan pl-4 py-2">
+                            <p class="text-nexus-text"><strong class="text-nexus-cyan">Instituição:</strong> SENAI São Carlos — Escola 601 Antonio A. Lobbe</p>
+                            <p class="text-nexus-text"><strong class="text-nexus-cyan">Curso:</strong> Técnico em Mecatrônica</p>
+                            <p class="text-nexus-text"><strong class="text-nexus-cyan">Orientador:</strong> Roberto Campos Reis Junior</p>
+                            <p class="text-nexus-text"><strong class="text-nexus-cyan">Projeto:</strong> SynchroArm</p>
+                        </div>
+
+                        <p class="font-heading font-semibold text-lg text-nexus-cyan">
+                            "Conectando pessoas, máquinas e conhecimento."
+                        </p>
+                    </div>
+
+                    <!-- Visual Institutional Highlight Card -->
+                    <div class="lg:col-span-5 bg-nexus-sec border border-nexus-border rounded-2xl p-8 space-y-6">
+                        <div class="w-12 h-12 rounded-xl bg-nexus-blue/10 border border-nexus-blue flex items-center justify-center text-nexus-blue">
+                            <i data-lucide="award" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-heading font-bold text-2xl text-nexus-text">
+                            TECNOLOGIA SÓ FAZ SENTIDO QUANDO APROXIMA PESSOAS DO <span class="text-nexus-cyan">CONHECIMENTO.</span>
+                        </h3>
+                        <p class="text-xs text-nexus-sub leading-relaxed">
+                            Buscamos diminuir barreiras tecnológicas propondo ferramentas didáticas modernas, combinando prototipagem rápida e simulação digital.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 09: FAQ ACCORDION -->
+        <section class="py-24 px-6 lg:px-12 bg-nexus-sec border-t border-nexus-border/40 relative">
+            <div class="max-w-4xl mx-auto space-y-12">
+                
+                <div class="text-center space-y-4">
+                    <div class="font-mono text-xs text-nexus-cyan tracking-widest uppercase">[ PERGUNTAS FREQUENTES ]</div>
+                    <h2 class="font-heading font-bold text-3xl sm:text-4xl text-nexus-text">
+                        DUVIDAS SOBRE O <span class="text-nexus-cyan">PROJETO.</span>
+                    </h2>
+                </div>
+
+                <div class="space-y-4 font-sans">
+                    
+                    <div class="faq-item border border-nexus-border rounded-xl bg-nexus-card overflow-hidden">
+                        <button class="faq-toggle w-full p-6 text-left flex justify-between items-center font-heading font-semibold text-nexus-text hover:text-nexus-cyan transition-colors">
+                            <span>O que é o SynchroArm?</span>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-nexus-sub transform transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden p-6 pt-0 text-xs text-nexus-sub leading-relaxed border-t border-nexus-border/40">
+                            O SynchroArm é uma plataforma educacional que integra um braço robótico físico de 5 eixos impresso em 3D a um ambiente virtual imersivo (Gêmeo Digital) acessível via Meta Quest e navegadores Web.
+                        </div>
+                    </div>
+
+                    <div class="faq-item border border-nexus-border rounded-xl bg-nexus-card overflow-hidden">
+                        <button class="faq-toggle w-full p-6 text-left flex justify-between items-center font-heading font-semibold text-nexus-text hover:text-nexus-cyan transition-colors">
+                            <span>O braço físico já é controlado completamente pelo VR?</span>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-nexus-sub transform transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden p-6 pt-0 text-xs text-nexus-sub leading-relaxed border-t border-nexus-border/40">
+                            A integração bidirecional completa está atualmente em fase de testes e desenvolvimento contínuo. O protótipo físico e o ambiente virtual já possuem suas estruturas operacionais independentes.
+                        </div>
+                    </div>
+
+                    <div class="faq-item border border-nexus-border rounded-xl bg-nexus-card overflow-hidden">
+                        <button class="faq-toggle w-full p-6 text-left flex justify-between items-center font-heading font-semibold text-nexus-text hover:text-nexus-cyan transition-colors">
+                            <span>Qual o microcontrolador utilizado no projeto?</span>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-nexus-sub transform transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden p-6 pt-0 text-xs text-nexus-sub leading-relaxed border-t border-nexus-border/40">
+                            Utilizamos a placa ESP32 por sua alta capacidade de processamento, presença de comunicação Wi-Fi/Bluetooth integrada e facilidade para geração de sinais PWM de controle dos servos.
+                        </div>
+                    </div>
+
+                    <div class="faq-item border border-nexus-border rounded-xl bg-nexus-card overflow-hidden">
+                        <button class="faq-toggle w-full p-6 text-left flex justify-between items-center font-heading font-semibold text-nexus-text hover:text-nexus-cyan transition-colors">
+                            <span>Para quem a solução foi desenvolvida?</span>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-nexus-sub transform transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-content hidden p-6 pt-0 text-xs text-nexus-sub leading-relaxed border-t border-nexus-border/40">
+                            Para estudantes de mecatrônica, automação, novos profissionais da indústria e instituições de ensino que desejam acelerar o aprendizado prático com ferramentas de ponta.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 10: CONTATO -->
+        <section id="contato" class="py-24 px-6 lg:px-12 border-t border-nexus-border/40 relative">
+            <div class="max-w-4xl mx-auto space-y-12">
+                
+                <div class="text-center space-y-4">
+                    <div class="font-mono text-xs text-nexus-cyan tracking-widest uppercase">[ CONTATO & PARCERIAS ]</div>
+                    <h2 class="font-heading font-extrabold text-3xl sm:text-5xl text-nexus-text">
+                        VAMOS CONECTAR O <span class="text-nexus-cyan">PRÓXIMO PASSO.</span>
+                    </h2>
+                </div>
+
+                <form id="contact-form" onsubmit="event.preventDefault(); alert('Mensagem enviada com sucesso! A Nexus Atlas agradecerá o contato.');" class="bg-nexus-sec border border-nexus-border rounded-2xl p-8 space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="font-mono text-xs text-nexus-sub uppercase">Nome Completo</label>
+                            <input type="text" required placeholder="Seu nome" class="w-full bg-nexus-card border border-nexus-border rounded-lg px-4 py-3 text-sm text-nexus-text focus:outline-none focus:border-nexus-cyan transition-colors">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="font-mono text-xs text-nexus-sub uppercase">E-mail Profissional</label>
+                            <input type="email" required placeholder="seu@email.com" class="w-full bg-nexus-card border border-nexus-border rounded-lg px-4 py-3 text-sm text-nexus-text focus:outline-none focus:border-nexus-cyan transition-colors">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="font-mono text-xs text-nexus-sub uppercase">Empresa / Instituição</label>
+                            <input type="text" placeholder="SENAI / Empresa" class="w-full bg-nexus-card border border-nexus-border rounded-lg px-4 py-3 text-sm text-nexus-text focus:outline-none focus:border-nexus-cyan transition-colors">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="font-mono text-xs text-nexus-sub uppercase">Assunto</label>
+                            <input type="text" placeholder="Parceria / Dúvida" class="w-full bg-nexus-card border border-nexus-border rounded-lg px-4 py-3 text-sm text-nexus-text focus:outline-none focus:border-nexus-cyan transition-colors">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="font-mono text-xs text-nexus-sub uppercase">Mensagem</label>
+                        <textarea rows="4" required placeholder="Como podemos colaborar?" class="w-full bg-nexus-card border border-nexus-border rounded-lg px-4 py-3 text-sm text-nexus-text focus:outline-none focus:border-nexus-cyan transition-colors resize-none"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 rounded-xl bg-gradient-to-r from-nexus-blue to-nexus-cyan text-nexus-bg font-heading font-bold text-sm tracking-wider uppercase hover:opacity-95 transition-all shadow-[0_0_20px_rgba(0,229,255,0.2)]">
+                        ENVIAR MENSAGEM
+                    </button>
+                </form>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-nexus-bg border-t border-nexus-border py-12 px-6 lg:px-12 font-mono text-xs">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-7 h-7 rounded bg-nexus-sec border border-nexus-cyan/30 flex items-center justify-center text-nexus-cyan">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                </div>
+                <span class="font-heading font-bold text-nexus-text tracking-wider">NEXUS ATLAS</span>
+            </div>
+
+            <div class="text-nexus-sub text-center md:text-left">
+                SynchroArm — Integra SENAI 2026 // Conectando pessoas, máquinas e conhecimento.
+            </div>
+
+            <div class="text-nexus-sub">
+                © 2026 NEXUS ATLAS. Todos os direitos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE SCRIPTS & WEBGL POINT CLOUD ENGINE -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // 1. Preloader Logic
+        window.addEventListener('load', () => {
+            const bar = document.getElementById('loader-bar');
+            const percent = document.getElementById('loader-percent');
+            const preloader = document.getElementById('preloader');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                bar.style.width = `${progress}%`;
+                percent.innerText = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        preloader.style.opacity = '0';
+                        setTimeout(() => preloader.style.display = 'none', 700);
+                    }, 200);
+                }
+            }, 30);
+        });
+
+        // 2. Mobile Menu Drawer Toggle
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // 3. Custom Tech Cursor Logic
+        const cursorDot = document.getElementById('cursor-dot');
+        const cursorRing = document.getElementById('cursor-ring');
+
+        window.addEventListener('mousemove', (e) => {
+            const { clientX: x, clientY: y } = e;
+            cursorDot.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+            cursorRing.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        });
+
+        // Add Hover Enlarge Effect to Buttons and Links
+        document.querySelectorAll('a, button, input, textarea, .spotlight-card').forEach(elem => {
+            elem.addEventListener('mouseenter', () => {
+                cursorRing.style.width = '48px';
+                cursorRing.style.height = '48px';
+                cursorRing.style.borderColor = '#00E5FF';
+            });
+            elem.addEventListener('mouseleave', () => {
+                cursorRing.style.width = '32px';
+                cursorRing.style.height = '32px';
+                cursorRing.style.borderColor = 'rgba(0, 229, 255, 0.4)';
+            });
+        });
+
+        // 4. Spotlight Card Hover Tracking Effect
+        document.querySelectorAll('.spotlight-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // 5. FAQ Accordion Toggle
+        document.querySelectorAll('.faq-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const content = btn.nextElementSibling;
+                const icon = btn.querySelector('[data-lucide="chevron-down"]');
+                content.classList.toggle('hidden');
+                if (icon) {
+                    icon.classList.toggle('rotate-180');
+                }
+            });
+        });
+
+    </script>
+<script type="module" src="assets/quest.js"></script>
+<script src="assets/videos.js"></script>
+</body>
+</html>
